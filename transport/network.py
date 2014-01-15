@@ -355,6 +355,7 @@ class HttpConnection(CloudConnection):
         
         attempt = 0
 
+        print "\nREQUEST\n", url, headers, post_params
         while attempt <= self.retry_attempts:
             try:
                 body = None
@@ -375,7 +376,8 @@ class HttpConnection(CloudConnection):
                 # read entire response
                 body = response.read()
                 response.close()
-               
+                # LOG HERE
+                print "\nRESPONSE\n", body
                 if raw_response:
                     resp = body
                     break
@@ -392,7 +394,9 @@ class HttpConnection(CloudConnection):
                         break
             
             except Exception, e:
-                
+                if getattr(e, 'readlines', None):
+                    for line in e.readlines():
+                        print line.rstrip()
                 # only retry data transfer errors
                 if not isinstance(e, (IOError, httplib.HTTPException, socket.error, CloudException)):
                     raise                
@@ -847,7 +851,6 @@ class HttpConnection(CloudConnection):
         """modules_add adds the specified modules to the picloud system.
         modules is a list of tuples, where each tuple is (name, timestamp).
         modules_tarball is a string representing the tarball of all the included modules."""
-        
         packedMods = Packer()
         packedMods.add(serialize(modules))
         packedMods.add(modules_tarball)        
